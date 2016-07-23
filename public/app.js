@@ -1,17 +1,30 @@
-//get top track for each artist
-//GET https://api.spotify.com/v1/artists/{id}/top-tracks
+//problems: refresh array of songs, get array of songs for the first artist
 
-var getTopTracks = function(artist){
-  var url = 'https://api.spotify.com/v1/artists/'+artist.id+'/top-tracks';
-  var request1 = new XMLHttpRequest();
-  request1.open("GET", url);
-  request1.onload = function(){
-    if(request.status === 200) {
-      var topSongs = JSON.parse(request1.responseText)
-      console.log(topSongs)
-    }
-  }
+//understanding callback
+function rndSongArrayFun(artists,callback){
+  //var rndSongArray = [];
+  callback(artists);
 }
+
+var rndSongArray=[];
+var getTopSongs = function(artist){
+  var url="https://api.spotify.com/v1/artists/"+artist.id+"/top-tracks?country=GB";
+  var request = new XMLHttpRequest();
+  request.open('GET',url);
+  request.onload = function(){
+    if(request.status === 200){
+      var topSongs = JSON.parse(request.responseText);
+      var rndIdx = Math.floor(Math.random() * (topSongs.tracks.length+ 1));
+      rndSong = topSongs.tracks[rndIdx];
+      rndSongArray.push(rndSong);
+      //console.log(rndSongArray)
+    };
+  };
+  request.send(null);
+  //return rndSong
+}
+
+
 
 var searchSimilarArtists = function(artist){
   var url='https://api.spotify.com/v1/artists/'+artist.id+'/related-artists';
@@ -19,10 +32,16 @@ var searchSimilarArtists = function(artist){
   request.open("GET", url);
   request.onload = function(){
     if(request.status === 200) {
-      var similarArtists = JSON.parse(request.responseText)
-      var testArtist = similarArtists.artists[0]
-      console.log("test artist",testArtist)
-      getTopTracks(testArtist)
+      var similarArtistsObject = JSON.parse(request.responseText);
+      rndSongArrayFun(similarArtistsObject.artists,function(artists){
+          artists.forEach(function(artist){
+            {getTopSongs(artist)}
+          })
+      })
+      console.log('array of songs',rndSongArray);
+      console.log('array of similar artists',similarArtistsObject.artists)
+
+      // similarArtistsObject.artists.forEach(function(artist){getTopSongs(artist);});
     }
   }
   request.send(null);
@@ -37,12 +56,9 @@ var displayArtists = function(artists){
     option.value = artist.name;
     option.innerHTML = artist.name;
     dropdown.appendChild(option);
-  }
- 
+  } 
   results.appendChild(dropdown)
-
   searchSimilarArtists(artists.artists.items[0]);
-
   dropdown.onchange = function (){
     selectedIndex = dropdown.selectedIndex;
     var selectedArtist=artists.artists.items[selectedIndex]
@@ -56,7 +72,7 @@ var main = function(){
 
   var searchArtist = function(event) {
       event.preventDefault();
-      console.log(event);
+      //console.log(event);
       var query = document.getElementById( 'query' ).value;
       var url='https://api.spotify.com/v1/search?q=' + query + '&type=artist';
       var request = new XMLHttpRequest();
