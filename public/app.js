@@ -1,12 +1,20 @@
-//problems: refresh array of songs, get array of songs for the first artist
+var rndSongArray = [];
+
 
 //understanding callback
-function rndSongArrayFun(artists,callback){
-  //var rndSongArray = [];
-  callback(artists);
+function rndSongArrayFun(artists,callback){  
+  // eachSeries(artists,function(artist){getTopSongs(artist)})
+  for (i = 0; i<artists.length; i++){
+    //if(i < artists.length){
+      //console.log('output -1')
+      (function(i){getTopSongs(artists[i])})(i)
+      //getTopSongs(artists[i])
+   // }else if(i = artists.length){
+   // }
+  }
+  callback()
 }
 
-var rndSongArray=[];
 var getTopSongs = function(artist){
   var url="https://api.spotify.com/v1/artists/"+artist.id+"/top-tracks?country=GB";
   var request = new XMLHttpRequest();
@@ -15,9 +23,10 @@ var getTopSongs = function(artist){
     if(request.status === 200){
       var topSongs = JSON.parse(request.responseText);
       var rndIdx = Math.floor(Math.random() * (topSongs.tracks.length+ 1));
-      rndSong = topSongs.tracks[rndIdx];
+      var rndSong = topSongs.tracks[rndIdx];
       rndSongArray.push(rndSong);
-      //console.log(rndSongArray)
+      console.log('output 0');
+      //callback(rndSong)
     };
   };
   request.send(null);
@@ -26,22 +35,17 @@ var getTopSongs = function(artist){
 
 
 
-var searchSimilarArtists = function(artist){
+var searchSimilarArtists = function(artist,callback){
   var url='https://api.spotify.com/v1/artists/'+artist.id+'/related-artists';
   var request = new XMLHttpRequest();
   request.open("GET", url);
   request.onload = function(){
     if(request.status === 200) {
       var similarArtistsObject = JSON.parse(request.responseText);
-      rndSongArrayFun(similarArtistsObject.artists,function(artists){
-          artists.forEach(function(artist){
-            {getTopSongs(artist)}
-          })
-      })
-      console.log('array of songs',rndSongArray);
-      console.log('array of similar artists',similarArtistsObject.artists)
-
-      // similarArtistsObject.artists.forEach(function(artist){getTopSongs(artist);});
+      //callback
+      rndSongArrayFun(similarArtistsObject.artists,function(){console.log('Output 1',rndSongArray)})
+      console.log('array of similar artists',similarArtistsObject.artists,'2')
+      callback()
     }
   }
   request.send(null);
@@ -58,11 +62,15 @@ var displayArtists = function(artists){
     dropdown.appendChild(option);
   } 
   results.appendChild(dropdown)
-  searchSimilarArtists(artists.artists.items[0]);
+  searchSimilarArtists(artists.artists.items[0],function(){console.log('output3',artist,rndSongArray)});
+
   dropdown.onchange = function (){
+
     selectedIndex = dropdown.selectedIndex;
     var selectedArtist=artists.artists.items[selectedIndex]
     searchSimilarArtists(selectedArtist)
+    console.log('array of songs',rndSongArray);
+
   }
 }
 
